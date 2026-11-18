@@ -19,7 +19,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -27,22 +29,17 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Mic
-import androidx.compose.material.icons.filled.MicOff
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -59,6 +56,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.min
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import com.example.R
@@ -66,7 +64,6 @@ import com.example.model.LottieMood
 import com.example.model.LottiePetState
 import com.example.ui.components.LottiePandaView
 import com.example.ui.theme.BambooGreenPrimary
-import com.example.ui.theme.PastelPink
 import com.example.ui.theme.PureWhite
 import com.example.ui.theme.SoftTextDark
 
@@ -83,7 +80,8 @@ fun LivingRoomScreen(
     onTapFeet: () -> Unit,
     onStartListening: () -> Unit,
     onSpeakPhrase: (String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    contentPadding: PaddingValues = PaddingValues(0.dp)
 ) {
     val context = LocalContext.current
     val permissionLauncher = rememberLauncherForActivityResult(
@@ -99,7 +97,7 @@ fun LivingRoomScreen(
     val infiniteTransition = rememberInfiniteTransition(label = "mic_pulse")
     val pulseScale by infiniteTransition.animateFloat(
         initialValue = 1f,
-        targetValue = if (isListening) 1.25f else 1.05f,
+        targetValue = if (isListening) 1.2f else 1.05f,
         animationSpec = infiniteRepeatable(
             animation = tween(if (isListening) 400 else 1200, easing = FastOutSlowInEasing),
             repeatMode = RepeatMode.Reverse
@@ -117,7 +115,7 @@ fun LivingRoomScreen(
     )
 
     Box(modifier = modifier.fillMaxSize()) {
-        // Living room background image
+        // Living room background image edge-to-edge
         Image(
             painter = painterResource(id = R.drawable.img_home_room),
             contentDescription = "Sala de estar",
@@ -129,18 +127,17 @@ fun LivingRoomScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0x15FFFFFF))
+                .background(Color(0x12FFFFFF))
         )
 
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(bottom = 80.dp), // Room for bottom nav
+                .padding(contentPadding)
+                .padding(horizontal = 12.dp, vertical = 8.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.SpaceBetween
         ) {
-            Spacer(modifier = Modifier.height(10.dp))
-
             // Speech Balloon (Echo display)
             AnimatedVisibility(
                 visible = !speechText.isNullOrBlank() || isListening || isSpeaking,
@@ -152,18 +149,22 @@ fun LivingRoomScreen(
                     colors = CardDefaults.cardColors(containerColor = Color(0xF5FFFFFF)),
                     elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
                     modifier = Modifier
-                        .padding(horizontal = 24.dp)
+                        .fillMaxWidth(0.92f)
+                        .widthIn(max = 520.dp)
                         .testTag("speech_balloon")
                 ) {
                     Row(
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
                     ) {
                         Text(
                             text = if (isListening) "👂 ¡Escuchándote con mis orejitas!..."
                             else if (isSpeaking) "🗣️ \"${speechText ?: "¡Ji ji ji!"}\""
                             else "\"${speechText ?: ""}\"",
-                            fontSize = 15.sp,
+                            fontSize = 14.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = SoftTextDark,
                             textAlign = TextAlign.Center
@@ -172,17 +173,22 @@ fun LivingRoomScreen(
                 }
             }
 
-            // Central Lottie Panda Character
-            Box(
+            // Grounded Central Lottie Panda Character
+            BoxWithConstraints(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth(),
-                contentAlignment = Alignment.Center
+                contentAlignment = Alignment.BottomCenter
             ) {
+                val pandaSize = min(maxWidth * 0.78f, maxHeight * 0.94f).coerceIn(130.dp, 310.dp)
+
                 LottiePandaView(
                     state = state,
                     mood = mood,
-                    modifier = Modifier.size(310.dp),
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(bottom = 4.dp)
+                        .size(pandaSize),
                     onPetHead = onPetHead,
                     onTickleBelly = onTickleBelly,
                     onTapNose = onTapNose,
@@ -193,29 +199,31 @@ fun LivingRoomScreen(
             // Bottom Actions: Voice Echo Mic + Quick Phrase Carousel
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .widthIn(max = 600.dp)
             ) {
                 // Interactive Hints
                 Text(
-                    text = "Tócame en la pancita para reír, o en la cabecita para mimarme ✨",
-                    fontSize = 12.sp,
+                    text = "Tócame la pancita para reír o la cabecita para mimarme ✨",
+                    fontSize = 11.sp,
                     color = Color(0xDD374151),
                     fontWeight = FontWeight.Medium,
                     textAlign = TextAlign.Center,
                     modifier = Modifier
                         .clip(RoundedCornerShape(12.dp))
-                        .background(Color(0x99FFFFFF))
-                        .padding(horizontal = 12.dp, vertical = 4.dp)
+                        .background(Color(0xAAFFFFFF))
+                        .padding(horizontal = 10.dp, vertical = 4.dp)
                 )
 
-                Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = Modifier.height(8.dp))
 
                 // Microphone Echo Button (Talking Tom classic echo)
                 Box(contentAlignment = Alignment.Center) {
                     if (isListening) {
                         Box(
                             modifier = Modifier
-                                .size(76.dp)
+                                .size(72.dp)
                                 .scale(pulseScale)
                                 .clip(CircleShape)
                                 .background(Color(0x44E91E63))
@@ -236,7 +244,7 @@ fun LivingRoomScreen(
                             }
                         },
                         modifier = Modifier
-                            .size(62.dp)
+                            .size(58.dp)
                             .scale(if (!isListening) pulseScale else 1f)
                             .clip(CircleShape)
                             .background(
@@ -250,10 +258,10 @@ fun LivingRoomScreen(
                             .testTag("mic_echo_button")
                     ) {
                         Icon(
-                            imageVector = if (isListening) Icons.Default.Mic else Icons.Default.Mic,
+                            imageVector = Icons.Default.Mic,
                             contentDescription = "Habla con Lottie",
                             tint = PureWhite,
-                            modifier = Modifier.size(32.dp)
+                            modifier = Modifier.size(30.dp)
                         )
                     }
                 }
@@ -263,17 +271,20 @@ fun LivingRoomScreen(
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
                     color = if (isListening) Color(0xFFD81B60) else SoftTextDark,
-                    modifier = Modifier.padding(top = 4.dp)
+                    modifier = Modifier
+                        .padding(top = 4.dp)
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(Color(0x99FFFFFF))
+                        .padding(horizontal = 8.dp, vertical = 2.dp)
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
 
                 // Quick Talk Phrase Chips
                 LazyRow(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 12.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    contentPadding = PaddingValues(horizontal = 4.dp)
                 ) {
                     items(quickPhrases) { phrase ->
                         Box(
@@ -281,7 +292,7 @@ fun LivingRoomScreen(
                                 .clip(RoundedCornerShape(18.dp))
                                 .background(Color(0xEEFFFFFF))
                                 .clickable { onSpeakPhrase(phrase) }
-                                .padding(horizontal = 14.dp, vertical = 7.dp)
+                                .padding(horizontal = 12.dp, vertical = 7.dp)
                         ) {
                             Text(
                                 text = phrase,

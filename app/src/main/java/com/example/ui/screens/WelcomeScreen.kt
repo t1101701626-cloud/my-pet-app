@@ -20,14 +20,20 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -117,21 +123,24 @@ fun WelcomeScreen(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(24.dp),
+                    .windowInsetsPadding(WindowInsets.safeDrawing)
+                    .padding(horizontal = 24.dp, vertical = 16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
-                Spacer(modifier = Modifier.height(40.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
                 // Title Banner with natural floral elements
                 Card(
                     shape = RoundedCornerShape(32.dp),
                     colors = CardDefaults.cardColors(containerColor = Color(0xF2FFFFFF)),
                     elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
-                    modifier = Modifier.padding(horizontal = 12.dp)
+                    modifier = Modifier
+                        .widthIn(max = 520.dp)
+                        .padding(horizontal = 12.dp)
                 ) {
                     Column(
-                        modifier = Modifier.padding(24.dp),
+                        modifier = Modifier.padding(22.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(text = "🌿 🌸 🎋", fontSize = 26.sp)
@@ -141,7 +150,7 @@ fun WelcomeScreen(
                             style = MaterialTheme.typography.headlineLarge.copy(
                                 fontWeight = FontWeight.ExtraBold,
                                 color = BambooGreenDark,
-                                fontSize = 32.sp
+                                fontSize = 30.sp
                             ),
                             textAlign = TextAlign.Center
                         )
@@ -158,7 +167,7 @@ fun WelcomeScreen(
                 // Center Panda Preview
                 Box(
                     modifier = Modifier
-                        .size(230.dp)
+                        .size(210.dp)
                         .clip(CircleShape)
                         .background(Color(0xCCFFFFFF))
                         .border(4.dp, PastelPink, CircleShape),
@@ -167,7 +176,7 @@ fun WelcomeScreen(
                     LottiePandaView(
                         state = LottiePetState(name = "Lottie"),
                         mood = LottieMood.HAPPY,
-                        modifier = Modifier.size(210.dp)
+                        modifier = Modifier.size(195.dp)
                     )
                 }
 
@@ -176,7 +185,8 @@ fun WelcomeScreen(
                     onClick = { hasPressedPlay = true },
                     modifier = Modifier
                         .fillMaxWidth(0.85f)
-                        .height(64.dp)
+                        .widthIn(max = 420.dp)
+                        .height(60.dp)
                         .scale(buttonScale)
                         .testTag("play_button"),
                     shape = RoundedCornerShape(32.dp),
@@ -189,16 +199,16 @@ fun WelcomeScreen(
                     ) {
                         Text(
                             text = "¡JUGAR!",
-                            fontSize = 24.sp,
+                            fontSize = 22.sp,
                             fontWeight = FontWeight.Black,
                             color = PureWhite
                         )
                         Spacer(modifier = Modifier.width(10.dp))
-                        Text(text = "🐾", fontSize = 24.sp)
+                        Text(text = "🐾", fontSize = 22.sp)
                     }
                 }
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(12.dp))
             }
         } else {
             // STEP 2: Arrival & Naming in Cozy Room
@@ -206,7 +216,10 @@ fun WelcomeScreen(
                 visible = true,
                 enter = fadeIn() + slideInVertically(initialOffsetY = { 200 })
             ) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
                     // Nursery background
                     Image(
                         painter = painterResource(id = R.drawable.img_home_room),
@@ -217,8 +230,10 @@ fun WelcomeScreen(
 
                     Surface(
                         modifier = Modifier
+                            .windowInsetsPadding(WindowInsets.safeDrawing)
                             .fillMaxWidth(0.92f)
-                            .padding(16.dp),
+                            .widthIn(max = 520.dp)
+                            .padding(12.dp),
                         shape = RoundedCornerShape(32.dp),
                         color = Color(0xF7FFFFFF),
                         shadowElevation = 12.dp
@@ -226,7 +241,8 @@ fun WelcomeScreen(
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(24.dp),
+                                .verticalScroll(rememberScrollState())
+                                .padding(22.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Text(text = "🍼 ✨ 🛏️", fontSize = 24.sp)

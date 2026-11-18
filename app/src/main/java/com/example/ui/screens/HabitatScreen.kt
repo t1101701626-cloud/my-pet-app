@@ -1,31 +1,33 @@
 package com.example.ui.screens
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -44,14 +46,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.min
 import androidx.compose.ui.unit.sp
 import com.example.R
 import com.example.model.LottieMood
@@ -62,10 +65,7 @@ import com.example.ui.minigames.MemoryGame
 import com.example.ui.minigames.SequenceStoryGame
 import com.example.ui.minigames.SortGame
 import com.example.ui.theme.BambooGreenDark
-import com.example.ui.theme.BambooGreenPrimary
 import com.example.ui.theme.GoldenCoin
-import com.example.ui.theme.PastelPink
-import com.example.ui.theme.PureWhite
 import com.example.ui.theme.SoftTextDark
 
 enum class ActiveMinigame {
@@ -84,7 +84,8 @@ fun HabitatScreen(
     onRewardMinigame: (coinsWon: Int, praise: String) -> Unit,
     onPetHead: () -> Unit,
     onTickleBelly: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    contentPadding: PaddingValues = PaddingValues(0.dp)
 ) {
     var activeGame by remember { mutableStateOf(ActiveMinigame.NONE) }
     var showGameMenuSheet by remember { mutableStateOf(false) }
@@ -92,7 +93,7 @@ fun HabitatScreen(
     val infiniteTransition = rememberInfiniteTransition(label = "gamepad_pulse")
     val gamepadScale by infiniteTransition.animateFloat(
         initialValue = 1f,
-        targetValue = 1.08f,
+        targetValue = 1.06f,
         animationSpec = infiniteRepeatable(
             animation = tween(1100, easing = FastOutSlowInEasing),
             repeatMode = RepeatMode.Reverse
@@ -100,14 +101,15 @@ fun HabitatScreen(
         label = "gamepad_scale"
     )
 
-    // If a minigame is actively running, render it full screen
+    // If a minigame is actively running, render it cleanly inside contentPadding
     when (activeGame) {
         ActiveMinigame.MEMORY -> {
             MemoryGame(
                 onGameComplete = { coins ->
                     onRewardMinigame(coins, "¡Increíble memoria! ¡Encontraste todas las parejas!")
                 },
-                onBack = { activeGame = ActiveMinigame.NONE }
+                onBack = { activeGame = ActiveMinigame.NONE },
+                contentPadding = contentPadding
             )
             return
         }
@@ -116,7 +118,8 @@ fun HabitatScreen(
                 onGameComplete = { coins ->
                     onRewardMinigame(coins, "¡Qué bien cuentas! ¡Eres muy inteligente!")
                 },
-                onBack = { activeGame = ActiveMinigame.NONE }
+                onBack = { activeGame = ActiveMinigame.NONE },
+                contentPadding = contentPadding
             )
             return
         }
@@ -125,7 +128,8 @@ fun HabitatScreen(
                 onGameComplete = { coins ->
                     onRewardMinigame(coins, "¡Completaste la historia del bosque a la perfección!")
                 },
-                onBack = { activeGame = ActiveMinigame.NONE }
+                onBack = { activeGame = ActiveMinigame.NONE },
+                contentPadding = contentPadding
             )
             return
         }
@@ -134,7 +138,8 @@ fun HabitatScreen(
                 onGameComplete = { coins ->
                     onRewardMinigame(coins, "¡Excelente clasificación de colores y objetos!")
                 },
-                onBack = { activeGame = ActiveMinigame.NONE }
+                onBack = { activeGame = ActiveMinigame.NONE },
+                contentPadding = contentPadding
             )
             return
         }
@@ -142,7 +147,7 @@ fun HabitatScreen(
     }
 
     Box(modifier = modifier.fillMaxSize()) {
-        // Enchanted bamboo forest background
+        // Enchanted bamboo forest background edge-to-edge
         Image(
             painter = painterResource(id = R.drawable.img_forest_habitat),
             contentDescription = "Bosque encantado",
@@ -160,70 +165,87 @@ fun HabitatScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(bottom = 85.dp),
+                .padding(contentPadding)
+                .padding(horizontal = 12.dp, vertical = 8.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.SpaceBetween
         ) {
-            Spacer(modifier = Modifier.height(10.dp))
-
             // Cheerful Banner
             Card(
                 shape = RoundedCornerShape(20.dp),
                 colors = CardDefaults.cardColors(containerColor = Color(0xF2FFFFFF)),
                 elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-                modifier = Modifier.padding(horizontal = 20.dp)
+                modifier = Modifier
+                    .fillMaxWidth(0.94f)
+                    .widthIn(max = 520.dp)
             ) {
                 Text(
                     text = "🎋 Bosque Mágico de Bambú 🦋",
-                    fontSize = 15.sp,
+                    fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
                     color = BambooGreenDark,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 14.dp, vertical = 8.dp),
                     textAlign = TextAlign.Center
                 )
             }
 
-            // Central Panda enjoying the nature
-            Box(
+            // Grounded Panda enjoying the nature (standing at bottom floor of stage)
+            BoxWithConstraints(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth(),
-                contentAlignment = Alignment.Center
+                contentAlignment = Alignment.BottomCenter
             ) {
+                val pandaSize = min(maxWidth * 0.78f, maxHeight * 0.94f).coerceIn(130.dp, 310.dp)
+
                 LottiePandaView(
                     state = state,
                     mood = mood,
-                    modifier = Modifier.size(310.dp),
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(bottom = 4.dp)
+                        .size(pandaSize),
                     onPetHead = onPetHead,
                     onTickleBelly = onTickleBelly
                 )
             }
 
-            // Side Game Controller Floating Button & Bottom Bar
+            // Side Game Controller Floating Card
             Surface(
                 modifier = Modifier
-                    .fillMaxWidth(0.92f)
-                    .clip(RoundedCornerShape(26.dp)),
+                    .fillMaxWidth(0.94f)
+                    .widthIn(max = 560.dp)
+                    .clip(RoundedCornerShape(24.dp)),
                 color = Color(0xF5FFFFFF),
                 shadowElevation = 8.dp
             ) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(14.dp),
+                        .padding(horizontal = 14.dp, vertical = 12.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Column {
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(end = 10.dp)
+                    ) {
                         Text(
                             text = "Juegos Educativos 🎮",
-                            fontSize = 16.sp,
+                            fontSize = 15.sp,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
                             fontWeight = FontWeight.ExtraBold,
                             color = SoftTextDark
                         )
                         Text(
                             text = "¡Juega y gana monedas para Lottie!",
                             fontSize = 12.sp,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
                             color = Color(0xFF66BB6A),
                             fontWeight = FontWeight.Medium
                         )
@@ -233,6 +255,7 @@ fun HabitatScreen(
                     Button(
                         onClick = { showGameMenuSheet = true },
                         modifier = Modifier
+                            .heightIn(min = 48.dp)
                             .scale(gamepadScale)
                             .testTag("open_minigames_button"),
                         shape = RoundedCornerShape(22.dp),
@@ -263,7 +286,10 @@ fun HabitatScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 20.dp, vertical = 8.dp)
+                        .widthIn(max = 600.dp)
+                        .align(Alignment.CenterHorizontally)
+                        .verticalScroll(rememberScrollState())
+                        .padding(horizontal = 18.dp, vertical = 8.dp)
                         .padding(bottom = 24.dp)
                 ) {
                     Text(
@@ -278,9 +304,8 @@ fun HabitatScreen(
                         color = Color.Gray
                     )
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(14.dp))
 
-                    // 1. Memory Game
                     MinigameItemCard(
                         emoji = "🧠",
                         title = "1. Memoria de Parejas",
@@ -294,7 +319,6 @@ fun HabitatScreen(
 
                     Spacer(modifier = Modifier.height(10.dp))
 
-                    // 2. Math Game
                     MinigameItemCard(
                         emoji = "🔢",
                         title = "2. Matemática Mágica",
@@ -308,7 +332,6 @@ fun HabitatScreen(
 
                     Spacer(modifier = Modifier.height(10.dp))
 
-                    // 3. Sequence Story Game
                     MinigameItemCard(
                         emoji = "📖",
                         title = "3. Historias y Secuencias",
@@ -322,7 +345,6 @@ fun HabitatScreen(
 
                     Spacer(modifier = Modifier.height(10.dp))
 
-                    // 4. Sort & Colors Game
                     MinigameItemCard(
                         emoji = "🎨",
                         title = "4. Asociación y Clasificación",
@@ -363,15 +385,15 @@ private fun MinigameItemCard(
         ) {
             Box(
                 modifier = Modifier
-                    .size(52.dp)
+                    .size(48.dp)
                     .clip(CircleShape)
                     .background(color.copy(alpha = 0.35f)),
                 contentAlignment = Alignment.Center
             ) {
-                Text(text = emoji, fontSize = 26.sp)
+                Text(text = emoji, fontSize = 24.sp)
             }
 
-            Spacer(modifier = Modifier.width(14.dp))
+            Spacer(modifier = Modifier.width(12.dp))
 
             Column(modifier = Modifier.weight(1f)) {
                 Text(
@@ -386,6 +408,8 @@ private fun MinigameItemCard(
                     color = Color.Gray
                 )
             }
+
+            Spacer(modifier = Modifier.width(8.dp))
 
             Text(text = "🪙 +20", fontWeight = FontWeight.Bold, color = GoldenCoin, fontSize = 13.sp)
         }

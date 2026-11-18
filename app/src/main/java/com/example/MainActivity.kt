@@ -7,22 +7,14 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.animation.Crossfade
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import com.example.model.LottieMood
 import com.example.ui.components.BottomNav
 import com.example.ui.components.MainSection
 import com.example.ui.components.TopStatusBar
@@ -73,7 +65,15 @@ fun LottieMainApp(viewModel: LottieViewModel) {
     } else {
         Scaffold(
             modifier = Modifier.fillMaxSize(),
+            containerColor = Color.Transparent,
             contentWindowInsets = WindowInsets(0, 0, 0, 0),
+            topBar = {
+                TopStatusBar(
+                    state = petState,
+                    isSoundEnabled = isSoundEnabled,
+                    onToggleSound = { viewModel.toggleSound() }
+                )
+            },
             bottomBar = {
                 BottomNav(
                     currentSection = currentSection,
@@ -82,83 +82,72 @@ fun LottieMainApp(viewModel: LottieViewModel) {
                     }
                 )
             }
-        ) { _ ->
-            Box(modifier = Modifier.fillMaxSize()) {
-                // Section Content
-                Crossfade(
-                    targetState = currentSection,
-                    label = "section_crossfade",
-                    modifier = Modifier.fillMaxSize()
-                ) { section ->
-                    when (section) {
-                        MainSection.SALA -> {
-                            LivingRoomScreen(
-                                state = petState,
-                                mood = currentMood,
-                                isListening = isListening,
-                                isSpeaking = isSpeaking,
-                                speechText = speechText,
-                                onPetHead = { viewModel.petHead() },
-                                onTickleBelly = { viewModel.tickleBelly() },
-                                onTapNose = { viewModel.tapNose() },
-                                onTapFeet = { viewModel.tapFeet() },
-                                onStartListening = { viewModel.startListeningVoice() },
-                                onSpeakPhrase = { phrase -> viewModel.speakPhrase(phrase) }
-                            )
-                        }
-                        MainSection.COMER -> {
-                            KitchenScreen(
-                                state = petState,
-                                mood = currentMood,
-                                onFeedFood = { food -> viewModel.feedFood(food) },
-                                onPetHead = { viewModel.petHead() }
-                            )
-                        }
-                        MainSection.BANO -> {
-                            BathroomScreen(
-                                state = petState,
-                                mood = currentMood,
-                                onBrushTeeth = { progress -> viewModel.brushTeethProgress(progress) },
-                                onApplySoap = { progress -> viewModel.bathSoapProgress(progress) },
-                                onRinseWater = { viewModel.bathRinseWater() },
-                                onPetHead = { viewModel.petHead() }
-                            )
-                        }
-                        MainSection.DORMIR -> {
-                            BedroomScreen(
-                                state = petState,
-                                mood = currentMood,
-                                onToggleSleep = { viewModel.toggleSleep() },
-                                onPetHead = { viewModel.petHead() },
-                                onBuyOrEquipWardrobeItem = { item -> viewModel.buyOrEquipWardrobeItem(item) }
-                            )
-                        }
-                        MainSection.HABITAT -> {
-                            HabitatScreen(
-                                state = petState,
-                                mood = currentMood,
-                                onRewardMinigame = { coins, praise ->
-                                    viewModel.rewardMinigame(coins, praise)
-                                },
-                                onPetHead = { viewModel.petHead() },
-                                onTickleBelly = { viewModel.tickleBelly() }
-                            )
-                        }
+        ) { innerPadding ->
+            // Section Content: background fills edge-to-edge while interactive UI stays strictly within innerPadding
+            Crossfade(
+                targetState = currentSection,
+                label = "section_crossfade",
+                modifier = Modifier.fillMaxSize()
+            ) { section ->
+                when (section) {
+                    MainSection.SALA -> {
+                        LivingRoomScreen(
+                            state = petState,
+                            mood = currentMood,
+                            isListening = isListening,
+                            isSpeaking = isSpeaking,
+                            speechText = speechText,
+                            onPetHead = { viewModel.petHead() },
+                            onTickleBelly = { viewModel.tickleBelly() },
+                            onTapNose = { viewModel.tapNose() },
+                            onTapFeet = { viewModel.tapFeet() },
+                            onStartListening = { viewModel.startListeningVoice() },
+                            onSpeakPhrase = { phrase -> viewModel.speakPhrase(phrase) },
+                            contentPadding = innerPadding
+                        )
                     }
-                }
-
-                // Top Status Bar (Safe Drawing padding so notch doesn't cover gauges)
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .align(Alignment.TopCenter)
-                        .windowInsetsPadding(WindowInsets.safeDrawing)
-                ) {
-                    TopStatusBar(
-                        state = petState,
-                        isSoundEnabled = isSoundEnabled,
-                        onToggleSound = { viewModel.toggleSound() }
-                    )
+                    MainSection.COMER -> {
+                        KitchenScreen(
+                            state = petState,
+                            mood = currentMood,
+                            onFeedFood = { food -> viewModel.feedFood(food) },
+                            onPetHead = { viewModel.petHead() },
+                            contentPadding = innerPadding
+                        )
+                    }
+                    MainSection.BANO -> {
+                        BathroomScreen(
+                            state = petState,
+                            mood = currentMood,
+                            onBrushTeeth = { progress -> viewModel.brushTeethProgress(progress) },
+                            onApplySoap = { progress -> viewModel.bathSoapProgress(progress) },
+                            onRinseWater = { viewModel.bathRinseWater() },
+                            onPetHead = { viewModel.petHead() },
+                            contentPadding = innerPadding
+                        )
+                    }
+                    MainSection.DORMIR -> {
+                        BedroomScreen(
+                            state = petState,
+                            mood = currentMood,
+                            onToggleSleep = { viewModel.toggleSleep() },
+                            onPetHead = { viewModel.petHead() },
+                            onBuyOrEquipWardrobeItem = { item -> viewModel.buyOrEquipWardrobeItem(item) },
+                            contentPadding = innerPadding
+                        )
+                    }
+                    MainSection.HABITAT -> {
+                        HabitatScreen(
+                            state = petState,
+                            mood = currentMood,
+                            onRewardMinigame = { coins, praise ->
+                                viewModel.rewardMinigame(coins, praise)
+                            },
+                            onPetHead = { viewModel.petHead() },
+                            onTickleBelly = { viewModel.tickleBelly() },
+                            contentPadding = innerPadding
+                        )
+                    }
                 }
             }
         }
