@@ -1,0 +1,6 @@
+{
+  "name": "My Friend Lottie",
+  "description": "Mascota virtual interactiva infantil de Lottie, una tierna bebé panda. Cuídala, aliméntala, báñala, duérmela, vístela, habla con ella y diviértete con minijuegos educativos.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
